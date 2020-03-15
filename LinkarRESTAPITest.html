@@ -1,0 +1,1157 @@
+﻿<html>
+<head>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<meta charset="UTF-8">
+<title>Linkar REST API Test</title>
+</head>
+<body>
+<style>
+    code{
+    -webkit-writing-mode: horizontal-tb !important;
+    text-rendering: auto;
+    color: -internal-light-dark-color(black, white);
+    letter-spacing: normal;
+    word-spacing: normal;
+    text-transform: none;
+    text-indent: 0px;
+    text-shadow: none;
+    display: inline-block;
+    text-align: start;
+    -webkit-appearance: textarea;
+    background-color: -internal-light-dark-color(white, black);
+    -webkit-rtl-ordering: logical;
+    flex-direction: column;
+    resize: auto;
+    cursor: text;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    margin: 0em;
+    font: 400 13.3333px Arial;
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgb(169, 169, 169);
+    border-image: initial;
+    padding: 2px;
+    background-color: white;
+    color: black;
+    padding: 5px;    
+    width: 100%;
+    min-height: 100px;
+    max-height: 100px;
+        /*height: 100px;*/
+    overflow-y: auto;
+    overflow-x: auto;
+}
+        textarea {
+            width: 100%;
+        }
+		
+		body{
+	padding: 10px 20px;
+	margin: 10px auto;
+	padding: 20px;
+	background: #f0f0f0;
+	border-radius: 8px;
+	font-family: "Source Sans Pro",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+}
+label {
+	display: inline;
+	margin-bottom: 8px;
+	font-weight: bold;
+}
+input[type="text"],
+textarea,
+select {
+	/*background: rgba(255,255,255,.1);*/
+	border: none;
+	border-radius: 4px;
+	font-size: 15px;
+	margin: 0;
+	outline: 0;
+	padding: 10px;
+	width:350;
+	box-sizing: border-box; 
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box; 
+	/*background-color: #e8eeef;*/
+	/*color:#8a97a0;*/
+	-webkit-box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+	box-shadow: 0 1px 0 rgba(0,0,0,0.03) inset;
+	margin-bottom: 20px;
+}
+input[type="text"]:focus,
+textarea:focus,
+select:focus{
+	/*background: #d2d9dd;*/
+}
+select{
+	-webkit-appearance: menulist-button;
+	height:35px;
+}
+textarea{
+	width:100%;
+}
+button
+{
+	position: relative;
+	display: block;
+	padding: 19px 39px 18px 39px;
+	color: #FFF;
+	margin: 0 auto;
+	background: #1abc9c;
+	font-size: 18px;
+	text-align: center;
+	font-style: normal;
+	width: 25%;
+	border: 1px solid #16a085;
+	border-width: 1px 1px 3px;
+	margin-bottom: 10px;
+	display: inline;
+}
+button:hover
+{
+	background: #109177;
+}
+a{
+    color: white;
+    text-decoration: none;
+    background: #1abc9c;
+    padding: 3px;
+    border: 1px solid #16a085;
+	border-width: 1px 1px 3px;
+}
+</style>
+
+<!-- Content Header (Page header) -->
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0 text-dark">Linkar REST API Test</h1>
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.container-fluid -->
+</div>
+<!-- /.content-header -->
+<!-- Main content -->
+<section class="content">
+    <div>
+        <div class="form-group">
+            <label>URL:</label>
+            <input type="text" id="inputurl" value="" placeholder="Your Linkar Manager URL (http://localhost:11201)" style="margin-right:15px; max-width:350px; display:inline" class="form-control" />
+            <label>API Key:</label>
+            <input type="text" id="inputapikey" value="" placeholder="Your APIKey" onchange="RefreshRequest()" style="margin-right:15px;max-width:350px; display:inline" class="form-control" />
+            <label>Envelope Format:</label>
+            <input type="radio" name="envelopeFormat" value="JSON" checked onchange="RefreshRequest()"> JSON
+            <input type="radio" name="envelopeFormat" value="XML" onchange="RefreshRequest()"> XML
+        </div>
+        <div>
+            <label>Operation:</label>
+            <select id="operation" onchange="changeOperation(this)" style="margin-right:15px;max-width:350px; display:inline" class="form-control">
+                <option data-url="read" value="READ">READ</option>
+                <option data-url="update" value="UPDATE">UPDATE</option>
+                <option data-url="new" value="NEW">NEW</option>
+                <option data-url="new" value="NEW_LINKAR">NEW_LINKAR</option>
+                <option data-url="new" value="NEW_CUSTOM">NEW_CUSTOM</option>
+                <option data-url="new" value="NEW_RANDOM">NEW_RANDOM</option>
+                <option data-url="delete" value="DELETE">DELETE</option>
+                <option data-url="delete" value="DELETE_LINKAR">DELETE_LINKAR</option>
+                <option data-url="delete" value="DELETE_CUSTOM">DELETE_CUSTOM</option>
+                <option data-url="select" value="SELECT">SELECT</option>
+                <option data-url="subroutine" value="SUBROUTINE">SUBROUTINE</option>
+                <option data-url="conversion" value="CONVERSION">CONVERSION</option>
+                <option data-url="format" value="FORMAT">FORMAT</option>
+                <option data-url="dictionaries" value="DICTIONARIES">DICTIONARIES</option>
+                <option data-url="execute" value="EXECUTE">EXECUTE</option>
+                <option data-url="lkschemas" value="LKSCHEMAS_LKSCHEMAS">LKSCHEMAS_LKSCHEMAS</option>
+                <option data-url="LkSchemasSqlMode" value="LKSCHEMAS_SQLMODE">LKSCHEMAS_SQLMODE</option>
+                <option data-url="LKSchemasDictionaries" value="LKSCHEMAS_DICTIONARIES">LKSCHEMAS_DICTIONARIES</option>
+                <option data-url="lkproperties" value="LKPROPERTIES_LKSCHEMAS">LKPROPERTIES_LKSCHEMAS</option>
+                <option data-url="LkPropertiesSqlMode" value="LKPROPERTIES_SQLMODE">LKPROPERTIES_SQLMODE</option>
+                <option data-url="LkPropertiesDictionaries" value="LKPROPERTIES_DICTIONARIES">LKPROPERTIES_DICTIONARIES</option>
+                <option data-url="gettable" value="GETTABLE_LKSCHEMAS">GETTABLE_LKSCHEMAS</option>
+                <option data-url="GetTableSqlMode" value="GETTABLE_SQLMODE">GETTABLE_SQLMODE</option>
+                <option data-url="GetTableDictionaries" value="GETTABLE_DICTIONARIES">GETTABLE_DICTIONARIES</option>
+                <option data-url="GetTableNone" value="GETTABLE_NONE">GETTABLE_NONE</option>
+                <option data-url="getversion" value="GETVERSION">GETVERSION</option>
+                <option data-url="resetcommonblocks" value="RESETCOMMONBLOCKS">RESETCOMMONBLOCKS</option>
+            </select>
+            <label style="margin-left:15px">Output Format:</label>
+            <input type="radio" name="outputFormat" id="outformatMV" value="MV" checked onchange="RefreshRequest()"> MV
+            <input type="radio" name="outputFormat" id="outformatJSON" value="JSON" onchange="RefreshRequest()"> JSON
+            <input type="radio" name="outputFormat" id="outformatXML" value="XML" onchange="RefreshRequest()"> XML
+            <input type="radio" name="outputFormat" id="outformatTABLE" value="TABLE" disabled onchange="RefreshRequest()"> TABLE
+        </div><br />
+        <label style="margin-right:10px">Request: </label><span id="txturl"></span>
+        <br /><code id="txtrequest" contenteditable="true"></code><br /><br />
+        <div>
+            <button onclick="SendCommand()" class="btn btn-success">SEND</button>
+            <button onclick="Clear()" class="btn btn-danger" style="float:right">CLEAR</button>
+        </div><br />
+        <label>Result</label>
+    <br /><code id="txtresult"></code><br /><br />
+        <a href="javascript:CopyToClipboard()" class="btn btn-success" role="button">Copy to Clipboard</a><br /><br />
+        <label>Error</label>
+    <br /><code id="txterror"></code><br /><br />
+    </div>
+
+    <script>
+        function Clear() {
+            $("#txterror").html("");
+            $("#txtresult").html("");
+        }
+
+        function CopyToClipboard() {
+			var textarea = document.getElementById("txtresult");
+
+			var selection = document.getSelection();
+			var range = document.createRange();
+
+			range.selectNode(textarea);
+			selection.removeAllRanges();
+			selection.addRange(range);
+
+			selection.removeAllRanges();
+        }
+
+        function RefreshRequest() {
+            $("#txterror").val("");
+            $("#txtresult").val("");
+            $("#txtrequest").val("");
+            var apikey = $("#inputapikey").val();
+            var envelopeFormat = $('input:radio[name=envelopeFormat]:checked').val();
+            var operation = $("#operation").val();
+            var inputFormat = "MV";
+            var outputFormat = $('input:radio[name=outputFormat]:checked').val();
+            var data = GetTemplate(apikey, operation, envelopeFormat, inputFormat, outputFormat);
+            $("#txtrequest").html(data.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+            var inputurl = $("#inputurl").val();
+            var operationurl = $('#operation option:selected').attr("data-url");
+            $("#txturl").html(inputurl + "/api/" + operationurl);
+        }
+
+        function changeOperation(e) {
+            var operation = e.value;
+            $('#outformatMV').prop("disabled", true);
+            $('#outformatJSON').prop("disabled", true);
+            $('#outformatXML').prop("disabled", true);
+            $('#outformatTABLE').prop("disabled", true);
+            if (operation.startsWith("LKSCHEMAS_") || operation.startsWith("LKPROPERTIES_")) {
+                $('#outformatMV').prop("disabled", false);
+                $('#outformatJSON').prop("disabled", false);
+                $('#outformatXML').prop("disabled", false);
+                $('#outformatTABLE').prop("disabled", false);
+            }
+            else if (operation.startsWith("GETTABLE_")) {
+                $('#outformatTABLE').prop("disabled", false);
+                $('#outformatTABLE').prop("checked", true);
+            }
+            else {
+                $('#outformatMV').prop("disabled", false);
+                $('#outformatJSON').prop("disabled", false);
+                $('#outformatXML').prop("disabled", false);
+                if ($('#outformatTABLE').is(':checked'))
+                    $('#outformatMV').prop("checked", true);
+            }
+            RefreshRequest();
+        }
+
+        function SendCommand() {
+            $("#txterror").html("");
+            $("#txtresult").html("");
+            var data = $("#txtrequest").html().replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+            var inputurl = $("#inputurl").val();
+            var contenttype = "";
+            var datatype = "";
+            var envelopeFormat = $('input:radio[name=envelopeFormat]:checked').val();
+            if (envelopeFormat === "JSON") {
+                contenttype = "application/json";
+                datatype = "json";
+            }
+            else {
+                contenttype = "text/xml";
+                datatype = "text";
+            }
+            var operationurl = $('#operation option:selected').attr("data-url");
+            var url = inputurl + "/api/" + operationurl;
+
+            $.ajax({
+                url: url,
+                contentType: contenttype,
+                type: 'POST',
+                dataType: datatype,
+                data: data,
+                success: function (result) {
+                    if (result)
+                        $("#txtresult").html(result.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+                },
+                error: function (error) {
+                    if (error)
+                        $("#txterror").html(error.responseText);
+                }
+            });
+            return false;
+        }
+
+        function GetTemplate(apikey, operation, envelopeFormat, inputFormat, outputFormat) {
+            var fulltemplate = "";
+            if (envelopeFormat === "JSON") {
+                var template = "";
+                switch (operation) {
+                    case "READ":
+                        template =
+                            "{ " +
+                            "\"CALCULATED\" : \"False\" ," +
+                            "\"DICTIONARIES\" : \"False\" ," +
+                            "\"CONVERSION\" : \"False\" ," +
+                            "\"FORMAT_SPEC\" : \"False\" ," +
+                            "\"ORIGINAL_RECORDS\" : \"False\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_IDS\" : " +
+                            "[ " +
+                            "{ \"ID\" : \"2\" }, " +
+                            "{ \"ID\" : \"3\" } " +
+                            "] ," +
+                            "\"RECORD_DICTCLAUSE\" : \"\"" +
+                            "}";
+                        break;
+
+                    case "UPDATE":
+                        template =
+                            "{" +
+                            "\"READ_AFTER\" : \"False\" ," +
+                            "\"CALCULATED\" : \"False\" ," +
+                            "\"DICTIONARIES\" : \"False\" ," +
+                            "\"CONVERSION\" : \"False\" ," +
+                            "\"FORMAT_SPEC\" : \"False\" ," +
+                            "\"ORIGINAL_RECORDS\" : \"False\" ," +
+                            "\"OPTIMISTIC_LOCK\" : \"False\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_IDS\" : " +
+                            "[ " +
+                            "{ \"ID\" : \"2\" }," +
+                            "{ \"ID\" : \"3\" }" +
+                            "] ," +
+                            "\"RECORD_LIST\" : " +
+                            "[ " +
+                            "{ \"RECORD\" : \"UPDATED CUSTOMER 2þADDRESS 2þ444 - 444 - 444\" }," +
+                            "{ \"RECORD\" : \"UPDATED CUSTOMER 2þADDRESS 2þ444 - 444 - 444\" }" +
+                            "] ," +
+                            "\"ORIGINAL_RECORD_LIST\" : " +
+                            "[ " +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "NEW":
+                        template =
+                            "{" +
+                            "\"READ_AFTER\" : \"True\" ," +
+                            "\"CALCULATED\" : \"True\" ," +
+                            "\"DICTIONARIES\" : \"False\" ," +
+                            "\"CONVERSION\" : \"False\" ," +
+                            "\"FORMAT_SPEC\" : \"False\" ," +
+                            "\"ORIGINAL_RECORDS\" : \"False\" ," +
+                            "\"NEW_RECORD_ID_TYPE\" : \"NONE\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_IDS\" : " +
+                            "[ " +
+                            "{ \"ID\" : \"A99\" }," +
+                            "{ \"ID\" : \"B99\" }" +
+                            "] ," +
+                            "\"RECORD_LIST\" : " +
+                            "[ " +
+                            "{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
+                            "{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "NEW_LINKAR":
+                        template =
+                            "{" +
+                            "\"READ_AFTER\" : \"True\" ," +
+                            "\"CALCULATED\" : \"True\" ," +
+                            "\"DICTIONARIES\" : \"False\" ," +
+                            "\"CONVERSION\" : \"False\" ," +
+                            "\"FORMAT_SPEC\" : \"False\" ," +
+                            "\"ORIGINAL_RECORDS\" : \"False\" ," +
+                            "\"NEW_RECORD_ID_TYPE\" : \"LINKAR\" ," +
+                            "\"NEW_RECORD_ID_FORMAT_SPEC\" : \"\" ," +
+                            "\"NEW_RECORD_ID_PREFIX\" : \"\" ," +
+                            "\"NEW_RECORD_ID_SEPARATOR\" : \"\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_LIST\" : " +
+                            "[ " +
+                            "	{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
+                            "	{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "NEW_CUSTOM":
+                        template =
+                            "{" +
+                            "\"READ_AFTER\" : \"True\" ," +
+                            "\"CALCULATED\" : \"True\" ," +
+                            "\"DICTIONARIES\" : \"False\" ," +
+                            "\"CONVERSION\" : \"False\" ," +
+                            "\"FORMAT_SPEC\" : \"False\" ," +
+                            "\"ORIGINAL_RECORDS\" : \"False\" ," +
+                            "\"NEW_RECORD_ID_TYPE\" : \"CUSTOM\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_LIST\" : " +
+                            "[ " +
+                            "	{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
+                            "	{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "NEW_RANDOM":
+                        template =
+                            "{" +
+                            "\"READ_AFTER\" : \"True\" ," +
+                            "\"CALCULATED\" : \"True\" ," +
+                            "\"DICTIONARIES\" : \"False\" ," +
+                            "\"CONVERSION\" : \"False\" ," +
+                            "\"FORMAT_SPEC\" : \"False\" ," +
+                            "\"ORIGINAL_RECORDS\" : \"False\" ," +
+                            "\"NEW_RECORD_ID_TYPE\" : \"RANDOM\" ," +
+                            "\"NEW_RECORD_ID_LENGTH\" : \"10\" ," +
+                            "\"NEW_RECORD_ID_NUMERIC\" : \"False\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_LIST\" : " +
+                            "[ " +
+                            "	{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
+                            "	{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "DELETE":
+                        template =
+                            "{" +
+                            "\"OPTIMISTIC_LOCK\" : \"False\" ," +
+                            "\"RECOVER_RECORD_ID_TYPE\" : \"NONE\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_IDS\" : " +
+                            "[ " +
+                            "{ \"ID\" : \"A99\" }," +
+                            "{ \"ID\" : \"B99\" }" +
+                            "] ," +
+                            "\"ORIGINAL_RECORD_LIST\" : " +
+                            "[ " +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "DELETE_LINKAR":
+                        template =
+                            "{" +
+                            "\"OPTIMISTIC_LOCK\" : \"False\" ," +
+                            "\"RECOVER_RECORD_ID_TYPE\" : \"LINKAR\" ," +
+                            "\"RECOVER_RECORD_ID_PREFIX\" : \"\" ," +
+                            "\"RECOVER_RECORD_ID_SEPARATOR\" : \"\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_IDS\" : " +
+                            "[ " +
+                            "{ \"ID\" : \"107\" }," +
+                            "{ \"ID\" : \"108\" }" +
+                            "] ," +
+                            "\"ORIGINAL_RECORD_LIST\" : " +
+                            "[ " +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "DELETE_CUSTOM":
+                        template =
+                            "{" +
+                            "\"OPTIMISTIC_LOCK\" : \"False\" ," +
+                            "\"RECOVER_RECORD_ID_TYPE\" : \"CUSTOM\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"RECORD_IDS\" : " +
+                            "[ " +
+                            "{ \"ID\" : \"107\" }," +
+                            "{ \"ID\" : \"108\" }" +
+                            "] ," +
+                            "\"ORIGINAL_RECORD_LIST\" : " +
+                            "[ " +
+                            "] " +
+                            "}";
+                        break;
+
+                    case "SELECT":
+                        template =
+                            "{ " +
+                            "\"CALCULATED\" : \"True\" ," +
+                            "\"DICTIONARIES\" : \"False\" ," +
+                            "\"CONVERSION\" : \"False\" ," +
+                            "\"FORMAT_SPEC\" : \"False\" ," +
+                            "\"ORIGINAL_RECORDS\" : \"False\" ," +
+                            "\"ONLY_RECORD_ID\" : \"False\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"SELECT_CLAUSE\" : 'WITH NAME = \"[CUSTOMER]\"' ," +
+                            "\"SORT_CLAUSE\" : \"BY NAME\", " +
+                            "\"DICT_CLAUSE\" : \"\" ," +
+                            "\"PRESELECT_CLAUSE\" : \"\"" +
+                            "}";
+                        break;
+
+                    case "SUBROUTINE":
+                        template =
+                            "{ " +
+                            "\"SUBROUTINE_NAME\" : \"SUB.DEMOLINKAR\" ," +
+                            "\"NUMBER_OF_ARGUMENTS\" : \"3\" ," +
+                            "\"ARGUMENTS\" : " +
+                            "[ " +
+                            "{ \"ARGUMENT\" : \"0\" } ," +
+                            "{ \"ARGUMENT\" : \"%LINKAR.RECORD.SESSION%\" } ," +
+                            "{ \"ARGUMENT\" : \"\" } " +
+                            "] ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "CONVERSION":
+                        template =
+                            "{ " +
+                            "\"TYPE\" : \"ICONV\" ," +
+                            "\"CODE\" : \"D2-\" ," +
+                            "\"EXPRESSIONS\" : \"31-12-2017þ01-01-2018\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "FORMAT":
+                        template =
+                            "{ " +
+                            "\"FORMAT_SPEC\" : \"R%10\" ," +
+                            "\"EXPRESSIONS\" : \"1þ2\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "DICTIONARIES":
+                        template =
+                            "{ " +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "EXECUTE":
+                        template =
+                            "{ " +
+                            "\"STATEMENT\" : \"WHO\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "LKSCHEMAS_LKSCHEMAS":
+                        template =
+                            "{ " +
+                            "\"ROWPROPERTIES\" : \"False\" ," +
+                            "\"ONLYVISIBLES\" : \"False\" ," +
+                            "\"ROWHEADERS\" : \"MAINLABEL\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "LKSCHEMAS_SQLMODE":
+                        template =
+                            "{ " +
+                            "\"ONLYVISIBLES\" : \"False\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "LKSCHEMAS_DICTIONARIES":
+                        template =
+                            "{ " +
+                            "\"ROWHEADERS\" : \"MAINLABEL\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\"" +
+                            "}";
+                        break;
+
+                    case "LKPROPERTIES_LKSCHEMAS":
+                        template =
+                            "{ " +
+                            "\"USEPROPERTYNAMES\" : \"False\" ," +
+                            "\"ROWPROPERTIES\" : \"False\" ," +
+                            "\"ONLYVISIBLES\" : \"False\" ," +
+                            "\"ROWHEADERS\" : \"MAINLABEL\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.ORDERS\" " +
+                            "}";
+                        break;
+
+                    case "LKPROPERTIES_SQLMODE":
+                        template =
+                            "{ " +
+                            "\"ONLYVISIBLES\" : \"False\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.ORDERS\" " +
+                            "}";
+                        break;
+
+                    case "LKPROPERTIES_DICTIONARIES":
+                        template =
+                            "{ " +
+                            "\"ROWHEADERS\" : \"MAINLABEL\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
+                            "\"FILE_NAME\" : \"LK.ORDERS\" " +
+                            "}";
+                        break;
+
+                    case "GETTABLE_LKSCHEMAS":
+                        template =
+                            "{ " +
+                            "\"USEPROPERTYNAMES\" : \"False\" ," +
+                            "\"ROWPROPERTIES\" : \"False\" ," +
+                            "\"ONLYVISIBLES\" : \"False\" ," +
+                            "\"ROWHEADERS\" : \"MAINLABEL\" ," +
+                            "\"REPEATVALUES\" : \"False\" ," +
+                            "\"APPLYCONVERSION\" : \"False\" ," +
+                            "\"APPLYFORMAT\" : \"False\" ," +
+                            "\"CALCULATED\" : \"False\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"SELECT_CLAUSE\" : \"\" ," +
+                            "\"SORT_CLAUSE\" : \"\"," +
+                            "\"DICT_CLAUSE\" : \"\"" +
+                            "}";
+                        break;
+
+                    case "GETTABLE_SQLMODE":
+                        template =
+                            "{" +
+                            "\"ONLYVISIBLES\" : \"False\" ," +
+                            "\"APPLYCONVERSION\" : \"False\" ," +
+                            "\"APPLYFORMAT\" : \"False\" ," +
+                            "\"CALCULATED\" : \"False\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"SELECT_CLAUSE\" : \"\" ," +
+                            "\"SORT_CLAUSE\" : \"\"," +
+                            "\"DICT_CLAUSE\" : \"\"" +
+                            "}";
+                        break;
+
+                    case "GETTABLE_DICTIONARIES":
+                        template =
+                            "{ " +
+                            "\"ROWHEADERS\" : \"MAINLABEL\" ," +
+                            "\"REPEATVALUES\" : \"False\" ," +
+                            "\"APPLYCONVERSION\" : \"False\" ," +
+                            "\"APPLYFORMAT\" : \"False\" ," +
+                            "\"CALCULATED\" : \"False\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"SELECT_CLAUSE\" : \"\" ," +
+                            "\"SORT_CLAUSE\" : \"\"," +
+                            "\"DICT_CLAUSE\" : \"\"" +
+                            "}";
+                        break;
+
+                    case "GETTABLE_NONE":
+                        template =
+                            "{" +
+                            "\"ROWHEADERS\" : \"MAINLABEL\" ," +
+                            "\"REPEATVALUES\" : \"False\" ," +
+                            "\"APPLYCONVERSION\" : \"False\" ," +
+                            "\"APPLYFORMAT\" : \"False\" ," +
+                            "\"CALCULATED\" : \"False\" ," +
+                            "\"PAGINATION\" : \"False\" ," +
+                            "\"PAGE_NUMBER\" : \"1\" ," +
+                            "\"RECORDS_FOR_PAGE\" : \"10\" ," +
+                            "\"CUSTOM_VARS\" : \"\" ," +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"SELECT_CLAUSE\" : \"\" ," +
+                            "\"SORT_CLAUSE\" : \"\"," +
+                            "\"DICT_CLAUSE\" : \"\"" +
+                            "}";
+                        break;
+
+                    case "GETVERSION":
+                        template = "\"\"";
+                        break;
+
+                    case "RESETCOMMONBLOCKS":
+                        template = "\"\"";
+                        break;
+                }
+                fulltemplate = "{ \"APIKey\" : \"" + apikey + "\", \"Data\" : " + template + " }";
+            }
+            else {
+                var fulltemplate = "";
+                switch (operation) {
+                    case "READ":
+                        template =
+                            "<CALCULATED>False</CALCULATED>" +
+                            "<DICTIONARIES>False</DICTIONARIES>" +
+                            "<CONVERSION>False</CONVERSION>" +
+                            "<FORMAT_SPEC>False</FORMAT_SPEC>" +
+                            "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_IDS>" +
+                            "<ID>2</ID>" +
+                            "<ID>3</ID>" +
+                            "</RECORD_IDS>" +
+                            "<RECORD_DICTCLAUSE></RECORD_DICTCLAUSE>";
+                        break;
+
+                    case "UPDATE":
+                        template =
+                            "<READ_AFTER>False</READ_AFTER>" +
+                            "<CALCULATED>False</CALCULATED>" +
+                            "<DICTIONARIES>False</DICTIONARIES>" +
+                            "<CONVERSION>False</CONVERSION>" +
+                            "<FORMAT_SPEC>False</FORMAT_SPEC>" +
+                            "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
+                            "<OPTIMISTIC_LOCK>False</OPTIMISTIC_LOCK>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_IDS>" +
+                            "<ID>2</ID>" +
+                            "<ID>3</ID>" +
+                            "</RECORD_IDS>" +
+                            "<RECORD_LIST>" +
+                            "<RECORD><![CDATA[UPDATED CUSTOMER 2þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "<RECORD><![CDATA[UPDATED CUSTOMER 3þADDRESS 3þ444 - 444 - 444]]></RECORD>" +
+                            "</RECORD_LIST>" +
+                            "<ORIGINAL_RECORD_LIST>" +
+                            "</ORIGINAL_RECORD_LIST>";
+                        break;
+
+                    case "NEW":
+                        template =
+                            "<READ_AFTER>True</READ_AFTER>" +
+                            "<CALCULATED>True</CALCULATED>" +
+                            "<DICTIONARIES>False</DICTIONARIES>" +
+                            "<CONVERSION>False</CONVERSION>" +
+                            "<FORMAT_SPEC>False</FORMAT_SPEC>" +
+                            "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
+                            "<NEW_RECORD_ID_TYPE>NONE</NEW_RECORD_ID_TYPE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_IDS>" +
+                            "<ID>A99</ID>" +
+                            "<ID>B99</ID>" +
+                            "</RECORD_IDS>" +
+                            "<RECORD_LIST>" +
+                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "</RECORD_LIST>";
+                        break;
+
+                    case "NEW_LINKAR":
+                        template =
+                            "<READ_AFTER>True</READ_AFTER>" +
+                            "<CALCULATED>True</CALCULATED>" +
+                            "<DICTIONARIES>False</DICTIONARIES>" +
+                            "<CONVERSION>False</CONVERSION>" +
+                            "<FORMAT_SPEC>False</FORMAT_SPEC>" +
+                            "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
+                            "<NEW_RECORD_ID_TYPE>LINKAR</NEW_RECORD_ID_TYPE>" +
+                            "<NEW_RECORD_ID_FORMAT_SPEC></NEW_RECORD_ID_FORMAT_SPEC>" +
+                            "<NEW_RECORD_ID_PREFIX></NEW_RECORD_ID_PREFIX>" +
+                            "<NEW_RECORD_ID_SEPARATOR></NEW_RECORD_ID_SEPARATOR>	" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_LIST>" +
+                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "</RECORD_LIST>";
+                        break;
+
+                    case "NEW_CUSTOM":
+                        template =
+                            "<READ_AFTER>True</READ_AFTER>" +
+                            "<CALCULATED>True</CALCULATED>" +
+                            "<DICTIONARIES>False</DICTIONARIES>" +
+                            "<CONVERSION>False</CONVERSION>" +
+                            "<FORMAT_SPEC>False</FORMAT_SPEC>" +
+                            "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
+                            "<NEW_RECORD_ID_TYPE>CUSTOM</NEW_RECORD_ID_TYPE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_LIST>" +
+                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "</RECORD_LIST>";
+                        break;
+
+                    case "NEW_RANDOM":
+                        template =
+                            "<READ_AFTER>True</READ_AFTER>" +
+                            "<CALCULATED>True</CALCULATED>" +
+                            "<DICTIONARIES>False</DICTIONARIES>" +
+                            "<CONVERSION>False</CONVERSION>" +
+                            "<FORMAT_SPEC>False</FORMAT_SPEC>" +
+                            "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
+                            "<NEW_RECORD_ID_TYPE>RANDOM</NEW_RECORD_ID_TYPE>" +
+                            "<NEW_RECORD_ID_LENGTH>10</NEW_RECORD_ID_LENGTH>" +
+                            "<NEW_RECORD_ID_NUMERIC>False</NEW_RECORD_ID_NUMERIC>	" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_LIST>" +
+                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
+                            "</RECORD_LIST>";
+                        break;
+
+                    case "DELETE":
+                        template =
+                            "<OPTIMISTIC_LOCK>False</OPTIMISTIC_LOCK>" +
+                            "<RECOVER_RECORD_ID_TYPE>NONE</RECOVER_RECORD_ID_TYPE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_IDS>" +
+                            "<ID>A99</ID>" +
+                            "<ID>B99</ID>" +
+                            "</RECORD_IDS>" +
+                            "<ORIGINAL_RECORD_LIST>" +
+                            "</ORIGINAL_RECORD_LIST>";
+                        break;
+
+                    case "DELETE_LINKAR":
+                        template =
+                            "<OPTIMISTIC_LOCK>False</OPTIMISTIC_LOCK>" +
+                            "<RECOVER_RECORD_ID_TYPE>LINKAR</RECOVER_RECORD_ID_TYPE>	" +
+                            "<RECOVER_RECORD_ID_PREFIX></RECOVER_RECORD_ID_PREFIX>" +
+                            "<RECOVER_RECORD_ID_SEPARATOR></RECOVER_RECORD_ID_SEPARATOR>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_IDS>" +
+                            "<ID>107</ID>" +
+                            "<ID>108</ID>" +
+                            "</RECORD_IDS>" +
+                            "<ORIGINAL_RECORD_LIST>" +
+                            "</ORIGINAL_RECORD_LIST>";
+                        break;
+
+                    case "DELETE_CUSTOM":
+                        template =
+                            "<OPTIMISTIC_LOCK>False</OPTIMISTIC_LOCK>" +
+                            "<RECOVER_RECORD_ID_TYPE>CUSTOM</RECOVER_RECORD_ID_TYPE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<RECORD_IDS>" +
+                            "<ID>107</ID>" +
+                            "<ID>108</ID>" +
+                            "</RECORD_IDS>" +
+                            "<ORIGINAL_RECORD_LIST>" +
+                            "</ORIGINAL_RECORD_LIST>";
+                        break;
+
+                    case "SELECT":
+                        template =
+                            "<CALCULATED>True</CALCULATED>" +
+                            "<DICTIONARIES>False</DICTIONARIES>" +
+                            "<CONVERSION>False</CONVERSION>" +
+                            "<FORMAT_SPEC>False</FORMAT_SPEC>" +
+                            "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
+                            "<ONLY_RECORD_ID>False</ONLY_RECORD_ID>" +
+                            "<PAGINATION>True</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<SELECT_CLAUSE>WITH NAME = \"[CUSTOMER]\"</SELECT_CLAUSE>" +
+                            "<SORT_CLAUSE>BY NAME</SORT_CLAUSE>" +
+                            "<DICT_CLAUSE></DICT_CLAUSE>" +
+                            "<PRESELECT_CLAUSE></PRESELECT_CLAUSE>";
+                        break;
+
+                    case "SUBROUTINE":
+                        template =
+                            "<SUBROUTINE_NAME>SUB.DEMOLINKAR</SUBROUTINE_NAME>" +
+                            "<NUMBER_OF_ARGUMENTS>3</NUMBER_OF_ARGUMENTS>" +
+                            "<ARGUMENTS>" +
+                            "<ARGUMENT>0</ARGUMENT>" +
+                            "<ARGUMENT>%LINKAR.RECORD.SESSION%</ARGUMENT>" +
+                            "<ARGUMENT></ARGUMENT>" +
+                            "</ARGUMENTS>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "CONVERSION":
+                        template =
+                            "<TYPE>ICONV</TYPE>" +
+                            "<CODE>D2-</CODE>" +
+                            "<EXPRESSIONS>31-12-2017þ01-01-2018</EXPRESSIONS>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "FORMAT":
+                        template =
+                            "<FORMAT_SPEC>R%10</FORMAT_SPEC>" +
+                            "<EXPRESSIONS>1þ2</EXPRESSIONS>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "DICTIONARIES":
+                        template =
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "EXECUTE":
+                        template =
+                            "<STATEMENT>WHO</STATEMENT>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "LKSCHEMAS_LKSCHEMAS":
+                        template =
+                            "<ROWPROPERTIES>False</ROWPROPERTIES>" +
+                            "<ONLYVISIBLES>False</ONLYVISIBLES>" +
+                            "<ROWHEADERS>MAINLABEL</ROWHEADERS>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "LKSCHEMAS_SQLMODE":
+                        template =
+                            "<ONLYVISIBLES>False</ONLYVISIBLES>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "LKSCHEMAS_DICTIONARIES":
+                        template =
+                            "<ROWHEADERS>MAINLABEL</ROWHEADERS>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
+                        break;
+
+                    case "LKPROPERTIES_LKSCHEMAS":
+                        template =
+                            "<USEPROPERTYNAMES>False</USEPROPERTYNAMES>" +
+                            "<ROWPROPERTIES>False</ROWPROPERTIES>" +
+                            "<ONLYVISIBLES>False</ONLYVISIBLES>" +
+                            "<ROWHEADERS>MAINLABEL</ROWHEADERS>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT >" +
+                            "<FILE_NAME>LK.ORDERS</FILE_NAME>";
+                        break;
+
+                    case "LKPROPERTIES_SQLMODE":
+                        template =
+                            "<ONLYVISIBLES>False</ONLYVISIBLES>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.ORDERS</FILE_NAME >";
+                        break;
+
+                    case "LKPROPERTIES_DICTIONARIES":
+                        template =
+                            "<ROWHEADERS>MAINLABEL</ROWHEADERS>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
+                            "<FILE_NAME>LK.ORDERS</FILE_NAME>";
+                        break;
+
+                    case "GETTABLE_LKSCHEMAS":
+                        template =
+                            "<USEPROPERTYNAMES>False</USEPROPERTYNAMES>" +
+                            "<ROWPROPERTIES>False</ROWPROPERTIES>" +
+                            "<ONLYVISIBLES>False</ONLYVISIBLES>" +
+                            "<ROWHEADERS>MAINLABEL</ROWHEADERS>" +
+                            "<REPEATVALUES>False</REPEATVALUES>" +
+                            "<APPLYCONVERSION>False</APPLYCONVERSION>" +
+                            "<APPLYFORMAT>False</APPLYFORMAT>" +
+                            "<CALCULATED>False</CALCULATED>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<SELECT_CLAUSE></SELECT_CLAUSE>" +
+                            "<SORT_CLAUSE></SORT_CLAUSE>" +
+                            "<DICT_CLAUSE></DICT_CLAUSE>";
+                        break;
+
+                    case "GETTABLE_SQLMODE":
+                        template =
+                            "<ONLYVISIBLES>False</ONLYVISIBLES>" +
+                            "<APPLYCONVERSION>False</APPLYCONVERSION>" +
+                            "<APPLYFORMAT>False</APPLYFORMAT>" +
+                            "<CALCULATED>False</CALCULATED>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<SELECT_CLAUSE></SELECT_CLAUSE>" +
+                            "<SORT_CLAUSE></SORT_CLAUSE>" +
+                            "<DICT_CLAUSE></DICT_CLAUSE>";
+                        break;
+
+                    case "GETTABLE_DICTIONARIES":
+                        template =
+                            "<ROWHEADERS>MAINLABEL</ROWHEADERS>" +
+                            "<REPEATVALUES>False</REPEATVALUES>" +
+                            "<APPLYCONVERSION>False</APPLYCONVERSION>" +
+                            "<APPLYFORMAT>False</APPLYFORMAT>" +
+                            "<CALCULATED>False</CALCULATED>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<SELECT_CLAUSE></SELECT_CLAUSE>" +
+                            "<SORT_CLAUSE></SORT_CLAUSE>" +
+                            "<DICT_CLAUSE></DICT_CLAUSE>";
+                        break;
+
+                    case "GETTABLE_NONE":
+                        template =
+                            "<ROWHEADERS>MAINLABEL</ROWHEADERS>" +
+                            "<REPEATVALUES>False</REPEATVALUES>" +
+                            "<APPLYCONVERSION>False</APPLYCONVERSION>" +
+                            "<APPLYFORMAT>False</APPLYFORMAT>" +
+                            "<CALCULATED>False</CALCULATED>" +
+                            "<PAGINATION>False</PAGINATION>" +
+                            "<PAGE_NUMBER>1</PAGE_NUMBER>" +
+                            "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
+                            "<CUSTOM_VARS></CUSTOM_VARS>" +
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<SELECT_CLAUSE></SELECT_CLAUSE>" +
+                            "<SORT_CLAUSE></SORT_CLAUSE>" +
+                            "<DICT_CLAUSE></DICT_CLAUSE>";
+                        break;
+
+                    case "GETVERSION":
+                        template = "";
+                        break;
+
+                    case "RESETCOMMONBLOCKS":
+                        template = "";
+                        break;
+                }
+                fulltemplate = "<LkCommand><APIKey>" + apikey + "</APIKey><Data>" + template + "</Data></LkCommand>";
+            }
+
+            return fulltemplate;
+        }
+
+        RefreshRequest();
+    </script>
+
+</section>
+</body>
+</html>
