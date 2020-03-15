@@ -16,29 +16,7 @@ Esta solicitud se realizará a la URL de la operación que queramos realizar, po
 
 El listado de operaciones permitidas es el siguiente:
 
-- Read
-- Update
-- New
-- Delete
-- Select
-- Subroutine
-- Conversion
-- Format
-- Dictionaries
-- Execute
-- LkSchemas
-- LkSchemasSqlMode
-- LKSchemasDictionaries
-- LkProperties
-- LkPropertiesSqlMode
-- LkPropertiesDictionaries
-- GetTable
-- GetTableSqlMode
-- GetTableDictionaries
-- GetTableNone
-- GetVersion
-- ResetCommonBlocks
-- SendCommand
+Read, Update, New, Delete, Select, Subroutine, Conversion, Format, Dictionaries, Execute, LkSchemas, LkSchemasSqlMode, LKSchemasDictionaries, LkProperties, LkPropertiesSqlMode, LkPropertiesDictionaries, GetTable, GetTableSqlMode, GetTableDictionaries, GetTableNone, GetVersion, ResetCommonBlocks.
 
 La llamada puede realizarse en dos formatos, JSON y XML, según el formato elegido para realizar la comunicación la llamada variará para que el servicio web la acepte.
 
