@@ -282,8 +282,15 @@ a{
                 dataType: datatype,
                 data: data,
                 success: function (result) {
-                    if (result)
-                        $("#txtresult").html(result.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+                    
+                  if (result) {
+                        if (envelopeFormat === "JSON") {
+                            var jsonstr = JSON.stringify(result);
+                            $("#txtresult").html(jsonstr.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+                        }
+                        else
+                            $("#txtresult").html(result.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+                    }															
                 },
                 error: function (error) {
                     if (error)
