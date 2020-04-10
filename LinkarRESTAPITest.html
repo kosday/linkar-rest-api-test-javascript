@@ -655,7 +655,7 @@ a{
                             "\"RECORDS_FOR_PAGE\" : \"10\" ," +
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.ORDERS\" " +
+                            "\"FILE_NAME\" : \"Orders\" " +
                             "}";
                         break;
 
@@ -705,7 +705,7 @@ a{
                             "\"PAGE_NUMBER\" : \"1\" ," +
                             "\"RECORDS_FOR_PAGE\" : \"10\" ," +
                             "\"CUSTOM_VARS\" : \"\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
+                            "\"FILE_NAME\" : \"Customers\" ," +
                             "\"SELECT_CLAUSE\" : \"\" ," +
                             "\"SORT_CLAUSE\" : \"\"," +
                             "\"DICT_CLAUSE\" : \"\"" +
@@ -758,7 +758,7 @@ a{
                         template = "\"\"";
                         break;
                 }
-                fulltemplate = "{ \"APIKey\" : \"" + apikey + "\", \"Data\" : " + template + " }";
+                fulltemplate = "{ \"APIKey\" : \"" + token + "\", \"Data\" : " + template + ", \"Language\" : \"\", \"FreeText\" : \"\"  }";
             }
             else {
                 var fulltemplate = "";
@@ -1058,7 +1058,7 @@ a{
                             "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.ORDERS</FILE_NAME >";
+                            "<FILE_NAME>Orders</FILE_NAME >";
                         break;
 
                     case "LKPROPERTIES_DICTIONARIES":
@@ -1102,7 +1102,7 @@ a{
                             "<PAGE_NUMBER>1</PAGE_NUMBER>" +
                             "<RECORDS_FOR_PAGE>10</RECORDS_FOR_PAGE>" +
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
+                            "<FILE_NAME>Customers</FILE_NAME>" +
                             "<SELECT_CLAUSE></SELECT_CLAUSE>" +
                             "<SORT_CLAUSE></SORT_CLAUSE>" +
                             "<DICT_CLAUSE></DICT_CLAUSE>";
@@ -1149,8 +1149,8 @@ a{
                     case "RESETCOMMONBLOCKS":
                         template = "";
                         break;
-                }
-                fulltemplate = "<LkCommand><APIKey>" + apikey + "</APIKey><Data>" + template + "</Data></LkCommand>";
+                }                
+				fulltemplate = "<LkCommand><APIKey>" + token + "</APIKey><Data>" + template + "</Data><Language></Language><FreeText></FreeText></LkCommand>";				
             }
 
             return fulltemplate;
