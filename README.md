@@ -1,59 +1,45 @@
 # Linkar REST API Test
+This example allows you to test the different calls that can be made to the Linkar REST API. The process that must be followed to make the calls correctly can also be seen through your code.
 
-Este ejemplo permite probar las diferentes llamadas que se pueden realizar a Linkar REST API. A través de su código también se puede ver el proceso que se debe seguir para realizar las llamadas correctamente.
+We need two things to make a Linkar REST API call:
 
-Para realizar una llamada a Linkar REST API necesitamos dos cosas:
+URL: This url refers to the web address (host and position) where Linkar Manager listens for http requests.
 
-URL: esta url hace referencia a la dirección web (host y puesto) donde Linkar Manager esta escuchando solicitudes http 
+API Key: This key must be created in Linkar Manager and defines the  IP addresses and operations allowed for this key in it.
 
-API Key: esta clave se debe crear en Linkar Manager y definir en él las direcciones IPs y las operaciones permitidas para este cliente
+Once we have these two values, we can look at the javascript code in this example.
 
-Una vez tenemos estos dos valores podemos fijarnos en el código javascript de este ejemplo. 
+Linkar REST API uses all Linkar Sendcommand Function Templates:
+READ, UPDATE, NEW, DELETE, SELECT, SUBROUTINE, CONVERSION, FORMAT, DICTIONARIES, EXECUTE, LKSCHEMAS, LKSCHEMASSQLMODE, LKSCHEMASDICTIONARIES, LKPROPERTIES, LKPROPERTIESSQLMODE, LKPROPERTIESDICTIONARIES, GETTABLE, GETTABLESQLMODE, GETTABLEDICTIONARIES, GETTABLENONE, GETVERSION, RESETCOMMONBLOCKS.
 
-La función de Linkar utilizada es SendCommand() y su objetivo es realizar una llamada POST el servicio web proporcionado por Linkar Manager.
+The call can be made in two formats, JSON and XML, the call will vary depending on the format chosen to make the communication, so that the web service accepts it.
 
-Esta solicitud se realizará a la URL de la operación que queramos realizar, por ejemplo, si deseamos ejecutar una READ, deberemos llamar a la URL de Linkar manager y añadirle la operación a realizar (http://yourdomain.com:11200/api/read).
+You must change the following according to the chosen format:
+•	ContentType: 
+JSON: value "application/json".
+XML: value "text/xml".
+•	DataType: (not necessary in all languages)
+JSON: value "json".
+XML: value "text".
+•	Data:
+JSON: It must be a JSON object converted to plain text.
+XML: Text string in XML format.
 
-El listado de operaciones permitidas es el siguiente:
+These are the requirements for the call to be accepted, but the data sent must follow a predetermined structure for the service to be understood.
+We call this structure an LkCommand. If you execute the code in this example, every command that can be executed will be easily seen. Let's try to explain how they are formed.
+There must be a main node called <LkCommand> in XML. All the content of the command will be found inside this node.
+In JSON the main object is the LkCommand itself and must not be defined as a property within a parent object.
+Wrong: { "LkCommand" : { "APIKey" : "my_apikey", "Data": "..." }} 
+Right: { "APIKey" : "my_apikey", "Data": "..." }
 
-Read, Update, New, Delete, Select, Subroutine, Conversion, Format, Dictionaries, Execute, LkSchemas, LkSchemasSqlMode, LKSchemasDictionaries, LkProperties, LkPropertiesSqlMode, LkPropertiesDictionaries, GetTable, GetTableSqlMode, GetTableDictionaries, GetTableNone, GetVersion, ResetCommonBlocks.
+A command needs to contain two variables to work, as you can see in this example:
+APIKey: The APIKey provided by Linkar Manager.
 
-La llamada puede realizarse en dos formatos, JSON y XML, según el formato elegido para realizar la comunicación la llamada variará para que el servicio web la acepte.
+Data: The data of the operation that we are going to carry out.
 
-Los cambios que deben realizarse según el formato escogido son los siguientes:
+Data is itself another package embedded within the LkCommand, and it is here where the operation necessary and optional arguments to obtain the desired result will be given.
+Each operation has a specific template. In these examples, we will use the READ operation template.
+We recommend you consult the help manual for information on all available templates.
 
-ContentType: 
 
-- JSON: su valor será "application/json"
-- XML: su valor será "text/xml"
-
-DataType: 
-- JSON: su valor será "json"
-- XML: su valor será: "text"
-
-Data:
-- JSON: debe ser un objeto JSON convertido a texto plano
-- XML: una cadena de texto con formato XML
-
-Estos son los requisitos para que la llamada sea aceptada, pero para que sea comprendida por el servicio los datos que se envían deben seguir una estructura predeterminada.
-
-Le llamamos a esta estructura un LkCommand, si ejecutas el código de este ejemplo podrás ver con facilidad todos y cada uno de los comandos que se pueden ejecutar, pero vamos a tratar de explicar cómo se forman.
-
-En XML debe de existir un nodo principal llamado <LkCommand>, dentro de este nodo se encontrará todo el contenido del comando.
-
-En JSON el objeto principal es en si mismo el LkCommand y no debe definirse como una propiedad dentro de un objeto superior
-
-Esta es la forma correcta { "APIKey" : "my_apikey", "Data": "..." }
-
-Esta sería una forma incorrecta { "LkCommand" : { "APIKey" : "my_apikey", "Data": "..." }} 
-
-Como se puede ver en este último ejemplo un comando necesita contener dos variables para funcionar:
-
-APIKey: la clave proporcionada por Linkar Manager.
-
-Data: los datos de la operación que vamos a realizar.
-
-Data es en si mismo otro paquete embutido dentro del LkCommand y es en este donde le daremos a la operación los argumentos necesarios y opcionales para obtener el resultado deseado. 
-Cada operación tiene una plantilla concreta y en el ejemplo se puede ver fácilmente como al seleccionar una operación la previsualización de la plantilla cambia.
-Para consultar más información sobre todas las plantillas disponibles le recomendamos que consulte nuestro manual de ayuda (Link a la ayuda de LkSendCommand).
 
