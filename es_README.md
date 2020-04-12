@@ -1,5 +1,7 @@
 # Linkar REST API Test
 
+ejecutable en https://kosday.com/resources/
+
 Este ejemplo permite probar las diferentes llamadas que se pueden realizar a Linkar REST API. A través de su código también se puede ver el proceso que se debe seguir para realizar las llamadas correctamente.
 
 Para realizar una llamada a Linkar REST API necesitamos dos cosas:
