@@ -758,7 +758,7 @@ a{
                         template = "\"\"";
                         break;
                 }
-                fulltemplate = "{ \"APIKey\" : \"" + token + "\", \"Data\" : " + template + ", \"Language\" : \"\", \"FreeText\" : \"\"  }";
+                fulltemplate = "{ \"APIKey\" : \"" + apikey + "\", \"Data\" : " + template + ", \"Language\" : \"\", \"FreeText\" : \"\"  }";
             }
             else {
                 var fulltemplate = "";
@@ -1150,7 +1150,7 @@ a{
                         template = "";
                         break;
                 }                
-				fulltemplate = "<LkCommand><APIKey>" + token + "</APIKey><Data>" + template + "</Data><Language></Language><FreeText></FreeText></LkCommand>";				
+				fulltemplate = "<LkCommand><APIKey>" + apikey + "</APIKey><Data>" + template + "</Data><Language></Language><FreeText></FreeText></LkCommand>";				
             }
 
             return fulltemplate;
