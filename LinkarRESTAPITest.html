@@ -142,8 +142,8 @@ a{
             <label>API Key:</label>
             <input type="text" id="inputapikey" value="" placeholder="Your APIKey" onchange="RefreshRequest()" style="margin-right:15px;max-width:350px; display:inline" class="form-control" />
             <label>Envelope Format:</label>
-            <input type="radio" name="envelopeFormat" value="JSON" checked onchange="RefreshRequest()"> JSON
-            <input type="radio" name="envelopeFormat" value="XML" onchange="RefreshRequest()"> XML
+            <input type="radio" name="envelopeFormat" id="envelopeFormatJSON" value="JSON" checked onchange="changeEnvelope()"> JSON
+            <input type="radio" name="envelopeFormat" id="envelopeFormatXML" value="XML" onchange="changeEnvelope()"> XML
         </div>
         <div>
             <label>Operation:</label>
@@ -176,11 +176,18 @@ a{
                 <option data-url="getversion" value="GETVERSION">GETVERSION</option>
                 <option data-url="resetcommonblocks" value="RESETCOMMONBLOCKS">RESETCOMMONBLOCKS</option>
             </select>
-            <label style="margin-left:15px">Output Format:</label>
-            <input type="radio" name="outputFormat" id="outformatMV" value="MV" checked onchange="RefreshRequest()"> MV
-            <input type="radio" name="outputFormat" id="outformatJSON" value="JSON" onchange="RefreshRequest()"> JSON
-            <input type="radio" name="outputFormat" id="outformatXML" value="XML" onchange="RefreshRequest()"> XML
-            <input type="radio" name="outputFormat" id="outformatTABLE" value="TABLE" disabled onchange="RefreshRequest()"> TABLE
+            <label style="margin-left:15px">Format:</label>
+			<select id="format" onchange="RefreshRequest()" style="margin-right:15px;max-width:350px; display:inline" class="form-control">
+				<option data-url="MV" value="MV">MV</option>
+				<option data-url="JSON" value="JSON" selected="selected">JSON</option>
+				<option data-url="JSON_DICT" value="JSON_DICT">JSON_DICT</option>
+				<option data-url="JSON_SCH" value="JSON_SCH">JSON_SCH</option>
+				<option data-url="XML" value="XML" style="display: none;">XML</option>
+				<option data-url="XML_DICT" value="XML_DICT" style="display: none;">XML_DICT</option>
+				<option data-url="XML_SCH" value="XML_SCH" style="display: none;">XML_SCH</option>
+				<option data-url="TABLE" value="TABLE" style="display: none;">TABLE</option>
+			</select>
+			<label id="mvWarning" style="color:red; display:none">In MV format the content of the RECORDS label, must be in Base64</label>
         </div><br />
         <label style="margin-right:10px">Request: </label><span id="txturl"></span>
         <br /><code id="txtrequest" contenteditable="true"></code><br /><br />
@@ -221,37 +228,87 @@ a{
             var apikey = $("#inputapikey").val();
             var envelopeFormat = $('input:radio[name=envelopeFormat]:checked').val();
             var operation = $("#operation").val();
-            var inputFormat = "MV";
-            var outputFormat = $('input:radio[name=outputFormat]:checked').val();
+            var outputFormat = $("#format").val();
+			if (outputFormat == "MV")
+                $("#mvWarning").show()
+            else
+                $("#mvWarning").hide()
+            var inputFormat = outputFormat;
+            if (outputFormat.startsWith("XML_"))
+                inputFormat = "XML";
+            else if (outputFormat.startsWith("JSON_"))
+                inputFormat = "JSON";
             var data = GetTemplate(apikey, operation, envelopeFormat, inputFormat, outputFormat);
             $("#txtrequest").html(data.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
             var inputurl = $("#inputurl").val();
             var operationurl = $('#operation option:selected').attr("data-url");
             $("#txturl").html(inputurl + "/api/" + operationurl);
         }
+		
+		function changeEnvelope() {
+            var envelopeFormat = $('input:radio[name=envelopeFormat]:checked').val();
+            $("#format").val(envelopeFormat);
+            changeOperation(document.getElementById("operation"));
+        }
 
         function changeOperation(e) {
             var operation = e.value;
-            $('#outformatMV').prop("disabled", true);
-            $('#outformatJSON').prop("disabled", true);
-            $('#outformatXML').prop("disabled", true);
-            $('#outformatTABLE').prop("disabled", true);
+            var optMV = $("#format option[value=MV]");
+            var optJSON = $("#format option[value=JSON]");
+            var optJSONDICT = $("#format option[value=JSON_DICT]");
+            var optJSONSCH = $("#format option[value=JSON_SCH]");
+            var optXML = $("#format option[value=XML]");
+            var optXMLDICT = $("#format option[value=XML_DICT]");
+            var optXMLSCH = $("#format option[value=XML_SCH]");
+            var optTABLE = $("#format option[value=TABLE]");
+            optMV.hide();
+            optJSON.hide();
+            optJSONDICT.hide();
+            optJSONSCH.hide();
+            optXML.hide();
+            optXMLDICT.hide();
+            optXMLSCH.hide();
+            optTABLE.hide();
             if (operation.startsWith("LKSCHEMAS_") || operation.startsWith("LKPROPERTIES_")) {
-                $('#outformatMV').prop("disabled", false);
-                $('#outformatJSON').prop("disabled", false);
-                $('#outformatXML').prop("disabled", false);
-                $('#outformatTABLE').prop("disabled", false);
+                optMV.show();
+                if ($('#envelopeFormatJSON').is(':checked'))
+                    optJSON.show();
+                else
+                    optXML.show();
+                optTABLE.show();
             }
             else if (operation.startsWith("GETTABLE_")) {
-                $('#outformatTABLE').prop("disabled", false);
-                $('#outformatTABLE').prop("checked", true);
+                optTABLE.show();
+                $("#format").val(optTABLE.val());
+            }
+            else if (operation.startsWith("READ") || operation.startsWith("UPDATE") || operation.startsWith("NEW") || operation.startsWith("SELECT")) {
+                optMV.show();
+                if ($('#envelopeFormatJSON').is(':checked')) {
+                    optJSON.show();
+                    optJSONDICT.show();
+                    optJSONSCH.show();
+                }
+                else {
+                    optXML.show();
+                    optXMLDICT.show();
+                    optXMLSCH.show();
+                }
+                if ($('#outformatTABLE').is(':checked'))
+                    $("#format").val(optMV.val());
             }
             else {
-                $('#outformatMV').prop("disabled", false);
-                $('#outformatJSON').prop("disabled", false);
-                $('#outformatXML').prop("disabled", false);
+                optMV.show();
+                if ($('#envelopeFormatJSON').is(':checked'))
+                    optJSON.show();
+                else
+                    optXML.show();
                 if ($('#outformatTABLE').is(':checked'))
-                    $('#outformatMV').prop("checked", true);
+                    $("#format").val(optMV.val());
+            }
+
+            if ($("#format option[value=" + $("#format").val() + "]").css('display') == 'none') {
+                var envelopeFormat = $('input:radio[name=envelopeFormat]:checked').val();
+                $("#format").val(envelopeFormat);
             }
             RefreshRequest();
         }
@@ -309,20 +366,24 @@ a{
                         template =
                             "{ " +
                             "\"CALCULATED\" : \"False\" ," +
-                            "\"DICTIONARIES\" : \"False\" ," +
                             "\"CONVERSION\" : \"False\" ," +
                             "\"FORMAT_SPEC\" : \"False\" ," +
                             "\"ORIGINAL_RECORDS\" : \"False\" ," +
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
                             "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_IDS\" : " +
-                            "[ " +
-                            "{ \"ID\" : \"2\" }, " +
-                            "{ \"ID\" : \"3\" } " +
-                            "] ," +
-                            "\"RECORD_DICTCLAUSE\" : \"\"" +
-                            "}";
+                            "\"DICT_CLAUSE\" : \"\",";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"Mh4z\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{ \"LKITEMID\" : \"2\" }, " +
+                                "{ \"LKITEMID\" : \"3\" } " +
+                                "] ,";
+                        }
+                        template+="}";
                         break;
 
                     case "UPDATE":
@@ -330,7 +391,6 @@ a{
                             "{" +
                             "\"READ_AFTER\" : \"False\" ," +
                             "\"CALCULATED\" : \"False\" ," +
-                            "\"DICTIONARIES\" : \"False\" ," +
                             "\"CONVERSION\" : \"False\" ," +
                             "\"FORMAT_SPEC\" : \"False\" ," +
                             "\"ORIGINAL_RECORDS\" : \"False\" ," +
@@ -338,21 +398,30 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_IDS\" : " +
-                            "[ " +
-                            "{ \"ID\" : \"2\" }," +
-                            "{ \"ID\" : \"3\" }" +
-                            "] ," +
-                            "\"RECORD_LIST\" : " +
-                            "[ " +
-                            "{ \"RECORD\" : \"UPDATED CUSTOMER 2þADDRESS 2þ444 - 444 - 444\" }," +
-                            "{ \"RECORD\" : \"UPDATED CUSTOMER 2þADDRESS 2þ444 - 444 - 444\" }" +
-                            "] ," +
-                            "\"ORIGINAL_RECORD_LIST\" : " +
-                            "[ " +
-                            "] " +
-                            "}";
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"Mh4zHFVQREFURUQgQ1VTVE9NRVIgMsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeVVBEQVRFRCBDVVNUT01FUiAzw75BRERSRVNTIDPDvjQ0NCAtIDQ0NCAtIDQ0NBwe\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"2\" ," +
+                                "\"NAME\" : \"UPDATED CUSTOMER 2\" ," +
+                                "\"ADDR\" : \"ADDRESS 2\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"3\" ," +
+                                "\"NAME\" : \"UPDATED CUSTOMER 3\" ," +
+                                "\"ADDR\" : \"ADDRESS 3\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "} " +
+                                "] ,";
+                        }
+                            template += "}";
                         break;
 
                     case "NEW":
@@ -360,7 +429,6 @@ a{
                             "{" +
                             "\"READ_AFTER\" : \"True\" ," +
                             "\"CALCULATED\" : \"True\" ," +
-                            "\"DICTIONARIES\" : \"False\" ," +
                             "\"CONVERSION\" : \"False\" ," +
                             "\"FORMAT_SPEC\" : \"False\" ," +
                             "\"ORIGINAL_RECORDS\" : \"False\" ," +
@@ -368,18 +436,28 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_IDS\" : " +
-                            "[ " +
-                            "{ \"ID\" : \"A99\" }," +
-                            "{ \"ID\" : \"B99\" }" +
-                            "] ," +
-                            "\"RECORD_LIST\" : " +
-                            "[ " +
-                            "{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
-                            "{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
-                            "] " +
-                            "}";
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                                                    if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"QTk5HkI5ORxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"A99\" ," +
+                                "\"NAME\" : \"NEW A CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 2\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"B99\" ," +
+                                "\"NAME\" : \"NEW B CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 3\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "} " +
+                                "] ,";
+                        }
+                            template += "}";
                         break;
 
                     case "NEW_LINKAR":
@@ -387,7 +465,6 @@ a{
                             "{" +
                             "\"READ_AFTER\" : \"True\" ," +
                             "\"CALCULATED\" : \"True\" ," +
-                            "\"DICTIONARIES\" : \"False\" ," +
                             "\"CONVERSION\" : \"False\" ," +
                             "\"FORMAT_SPEC\" : \"False\" ," +
                             "\"ORIGINAL_RECORDS\" : \"False\" ," +
@@ -398,13 +475,28 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_LIST\" : " +
-                            "[ " +
-                            "	{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
-                            "	{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
-                            "] " +
-                            "}";
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"HhxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"\" ," +
+                                "\"NAME\" : \"NEW A CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 2\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"\" ," +
+                                "\"NAME\" : \"NEW B CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 3\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "} " +
+                                "] ,";
+                        }
+                            template += "}";
                         break;
 
                     case "NEW_CUSTOM":
@@ -412,7 +504,6 @@ a{
                             "{" +
                             "\"READ_AFTER\" : \"True\" ," +
                             "\"CALCULATED\" : \"True\" ," +
-                            "\"DICTIONARIES\" : \"False\" ," +
                             "\"CONVERSION\" : \"False\" ," +
                             "\"FORMAT_SPEC\" : \"False\" ," +
                             "\"ORIGINAL_RECORDS\" : \"False\" ," +
@@ -420,13 +511,28 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_LIST\" : " +
-                            "[ " +
-                            "	{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
-                            "	{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
-                            "] " +
-                            "}";
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"HhxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"\" ," +
+                                "\"NAME\" : \"NEW A CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 2\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"\" ," +
+                                "\"NAME\" : \"NEW B CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 3\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "} " +
+                                "] ,";
+                        }
+                            template += "}";
                         break;
 
                     case "NEW_RANDOM":
@@ -434,7 +540,6 @@ a{
                             "{" +
                             "\"READ_AFTER\" : \"True\" ," +
                             "\"CALCULATED\" : \"True\" ," +
-                            "\"DICTIONARIES\" : \"False\" ," +
                             "\"CONVERSION\" : \"False\" ," +
                             "\"FORMAT_SPEC\" : \"False\" ," +
                             "\"ORIGINAL_RECORDS\" : \"False\" ," +
@@ -444,13 +549,28 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_LIST\" : " +
-                            "[ " +
-                            "	{ \"RECORD\" : \"NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444\" }," +
-                            "	{ \"RECORD\" : \"NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444\" }" +
-                            "] " +
-                            "}";
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"HhxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"\" ," +
+                                "\"NAME\" : \"NEW A CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 2\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"\" ," +
+                                "\"NAME\" : \"NEW B CUSTOMER\" ," +
+                                "\"ADDR\" : \"ADDRESS 3\" ," +
+                                "\"PHONE\" : \"444 - 444 - 444\"" +
+                                "} " +
+                                "] ,";
+                        }
+                            template += "}";
                         break;
 
                     case "DELETE":
@@ -461,16 +581,24 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_IDS\" : " +
-                            "[ " +
-                            "{ \"ID\" : \"A99\" }," +
-                            "{ \"ID\" : \"B99\" }" +
-                            "] ," +
-                            "\"ORIGINAL_RECORD_LIST\" : " +
-                            "[ " +
-                            "] " +
-                            "}";
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"QTk5HkI5ORwe\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"A99\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"B99\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "} " +
+                                "] ,";
+                        }
+                            template += "}";
                         break;
 
                     case "DELETE_LINKAR":
@@ -483,15 +611,23 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_IDS\" : " +
-                            "[ " +
-                            "{ \"ID\" : \"107\" }," +
-                            "{ \"ID\" : \"108\" }" +
-                            "] ," +
-                            "\"ORIGINAL_RECORD_LIST\" : " +
-                            "[ " +
-                            "] " +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"MTA3HjEwOBwe\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"107\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"108\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "} " +
+                                "] ,";
+                        }
                             "}";
                         break;
 
@@ -503,15 +639,23 @@ a{
                             "\"CUSTOM_VARS\" : \"\" ," +
                             "\"INPUT_FORMAT\" : \"" + inputFormat + "\" ," +
                             "\"OUTPUT_FORMAT\" : \"" + outputFormat + "\" ," +
-                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ," +
-                            "\"RECORD_IDS\" : " +
-                            "[ " +
-                            "{ \"ID\" : \"107\" }," +
-                            "{ \"ID\" : \"108\" }" +
-                            "] ," +
-                            "\"ORIGINAL_RECORD_LIST\" : " +
-                            "[ " +
-                            "] " +
+                            "\"FILE_NAME\" : \"LK.CUSTOMERS\" ,";
+                        if (outputFormat == "MV") {
+                            template += "\"RECORDS\": \"MTA3HjEwOBwe\",";
+                        }
+                        else {
+                            template += "\"RECORDS\" : " +
+                                "[ " +
+                                "{" +
+                                "\"LKITEMID\" : \"107\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "}, " +
+                                "{" +
+                                "\"LKITEMID\" : \"108\" ," +
+                                "\"ORIGINAL_RECORD\" : \"\"" +
+                                "} " +
+                                "] ,";
+                        }
                             "}";
                         break;
 
@@ -519,7 +663,6 @@ a{
                         template =
                             "{ " +
                             "\"CALCULATED\" : \"True\" ," +
-                            "\"DICTIONARIES\" : \"False\" ," +
                             "\"CONVERSION\" : \"False\" ," +
                             "\"FORMAT_SPEC\" : \"False\" ," +
                             "\"ORIGINAL_RECORDS\" : \"False\" ," +
@@ -751,11 +894,11 @@ a{
                         break;
 
                     case "GETVERSION":
-                        template = "\"\"";
+                        template = "{ \"OUTPUT_FORMAT\" : \"" + outputFormat + "\" }";
                         break;
 
                     case "RESETCOMMONBLOCKS":
-                        template = "\"\"";
+                        template = "{ \"OUTPUT_FORMAT\" : \"" + outputFormat + "\" }";
                         break;
                 }
                 fulltemplate = "{ \"APIKey\" : \"" + apikey + "\", \"Data\" : " + template + ", \"Language\" : \"\", \"FreeText\" : \"\"  }";
@@ -766,25 +909,33 @@ a{
                     case "READ":
                         template =
                             "<CALCULATED>False</CALCULATED>" +
-                            "<DICTIONARIES>False</DICTIONARIES>" +
                             "<CONVERSION>False</CONVERSION>" +
                             "<FORMAT_SPEC>False</FORMAT_SPEC>" +
                             "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
                             "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_IDS>" +
-                            "<ID>2</ID>" +
-                            "<ID>3</ID>" +
-                            "</RECORD_IDS>" +
-                            "<RECORD_DICTCLAUSE></RECORD_DICTCLAUSE>";
+                            "<DICT_CLAUSE></DICT_CLAUSE>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>Mh4z</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>2</LKITEMID>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>3</LKITEMID>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
+                            
                         break;
 
                     case "UPDATE":
                         template =
                             "<READ_AFTER>False</READ_AFTER>" +
                             "<CALCULATED>False</CALCULATED>" +
-                            "<DICTIONARIES>False</DICTIONARIES>" +
                             "<CONVERSION>False</CONVERSION>" +
                             "<FORMAT_SPEC>False</FORMAT_SPEC>" +
                             "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
@@ -792,24 +943,34 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_IDS>" +
-                            "<ID>2</ID>" +
-                            "<ID>3</ID>" +
-                            "</RECORD_IDS>" +
-                            "<RECORD_LIST>" +
-                            "<RECORD><![CDATA[UPDATED CUSTOMER 2þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "<RECORD><![CDATA[UPDATED CUSTOMER 3þADDRESS 3þ444 - 444 - 444]]></RECORD>" +
-                            "</RECORD_LIST>" +
-                            "<ORIGINAL_RECORD_LIST>" +
-                            "</ORIGINAL_RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>Mh4zHFVQREFURUQgQ1VTVE9NRVIgMsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeVVBEQVRFRCBDVVNUT01FUiAzw75BRERSRVNTIDPDvjQ0NCAtIDQ0NCAtIDQ0NBwe</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>2</LKITEMID>" +
+                                    "<NAME>UPDATED CUSTOMER 2</NAME>" +
+                                    "<ADDR>ADDRESS 2</ADDR>" + 
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" + 
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>3</LKITEMID>" +
+                                    "<NAME>UPDATED CUSTOMER 3</NAME>" +
+                                    "<ADDR>ADDRESS 3</ADDR>" + 
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" + 
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "NEW":
                         template =
                             "<READ_AFTER>True</READ_AFTER>" +
                             "<CALCULATED>True</CALCULATED>" +
-                            "<DICTIONARIES>False</DICTIONARIES>" +
                             "<CONVERSION>False</CONVERSION>" +
                             "<FORMAT_SPEC>False</FORMAT_SPEC>" +
                             "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
@@ -817,22 +978,32 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_IDS>" +
-                            "<ID>A99</ID>" +
-                            "<ID>B99</ID>" +
-                            "</RECORD_IDS>" +
-                            "<RECORD_LIST>" +
-                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "</RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>QTk5HkI5ORxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>A99</LKITEMID>" +
+                                    "<NAME>NEW A CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 2</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>B99</LKITEMID>" +
+                                    "<NAME>NEW B CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 3</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "NEW_LINKAR":
                         template =
                             "<READ_AFTER>True</READ_AFTER>" +
                             "<CALCULATED>True</CALCULATED>" +
-                            "<DICTIONARIES>False</DICTIONARIES>" +
                             "<CONVERSION>False</CONVERSION>" +
                             "<FORMAT_SPEC>False</FORMAT_SPEC>" +
                             "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
@@ -843,18 +1014,32 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_LIST>" +
-                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "</RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>HhxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID></LKITEMID>" +
+                                    "<NAME>NEW A CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 2</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID></LKITEMID>" +
+                                    "<NAME>NEW B CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 3</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "NEW_CUSTOM":
                         template =
                             "<READ_AFTER>True</READ_AFTER>" +
                             "<CALCULATED>True</CALCULATED>" +
-                            "<DICTIONARIES>False</DICTIONARIES>" +
                             "<CONVERSION>False</CONVERSION>" +
                             "<FORMAT_SPEC>False</FORMAT_SPEC>" +
                             "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
@@ -862,18 +1047,32 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_LIST>" +
-                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "</RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>HhxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID></LKITEMID>" +
+                                    "<NAME>NEW A CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 2</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID></LKITEMID>" +
+                                    "<NAME>NEW B CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 3</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "NEW_RANDOM":
                         template =
                             "<READ_AFTER>True</READ_AFTER>" +
                             "<CALCULATED>True</CALCULATED>" +
-                            "<DICTIONARIES>False</DICTIONARIES>" +
                             "<CONVERSION>False</CONVERSION>" +
                             "<FORMAT_SPEC>False</FORMAT_SPEC>" +
                             "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
@@ -883,11 +1082,26 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_LIST>" +
-                            "<RECORD><![CDATA[NEW A CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "<RECORD><![CDATA[NEW B CUSTOMER þADDRESS 2þ444 - 444 - 444]]></RECORD>" +
-                            "</RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>HhxORVcgQSBDVVNUT01FUsO+QUREUkVTUyAyw740NDQgLSA0NDQgLSA0NDQeTkVXIEIgQ1VTVE9NRVLDvkFERFJFU1MgM8O+NDQ0IC0gNDQ0IC0gNDQ0</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID></LKITEMID>" +
+                                    "<NAME>NEW A CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 2</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID></LKITEMID>" +
+                                    "<NAME>NEW B CUSTOMER</NAME>" +
+                                    "<ADDR>ADDRESS 3</ADDR>" +
+                                    "<PHONE>444 - 444 - 444</PHONE>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "DELETE":
@@ -897,13 +1111,22 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_IDS>" +
-                            "<ID>A99</ID>" +
-                            "<ID>B99</ID>" +
-                            "</RECORD_IDS>" +
-                            "<ORIGINAL_RECORD_LIST>" +
-                            "</ORIGINAL_RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>QTk5HkI5ORwe</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>A99</LKITEMID>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>B99</LKITEMID>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "DELETE_LINKAR":
@@ -915,13 +1138,22 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_IDS>" +
-                            "<ID>107</ID>" +
-                            "<ID>108</ID>" +
-                            "</RECORD_IDS>" +
-                            "<ORIGINAL_RECORD_LIST>" +
-                            "</ORIGINAL_RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>MTA3HjEwOBwe</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>107</LKITEMID>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>108</LKITEMID>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "DELETE_CUSTOM":
@@ -931,19 +1163,27 @@ a{
                             "<CUSTOM_VARS></CUSTOM_VARS>" +
                             "<INPUT_FORMAT>" + inputFormat + "</INPUT_FORMAT>" +
                             "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>" +
-                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>" +
-                            "<RECORD_IDS>" +
-                            "<ID>107</ID>" +
-                            "<ID>108</ID>" +
-                            "</RECORD_IDS>" +
-                            "<ORIGINAL_RECORD_LIST>" +
-                            "</ORIGINAL_RECORD_LIST>";
+                            "<FILE_NAME>LK.CUSTOMERS</FILE_NAME>";
+                            if (outputFormat == "MV") {
+                                template += "<RECORDS>MTA3HjEwOBwe</RECORDS>";
+                            }
+                            else {
+                                template += "<RECORDS>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>107</LKITEMID>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" +
+                                    "</RECORD>" +
+                                    "<RECORD>" +
+                                    "<LKITEMID>108</LKITEMID>" +
+                                    "<ORIGINAL_RECORD></ORIGINAL_RECORD>" +
+                                    "</RECORD>" +
+                                    "</RECORDS>";
+                            }
                         break;
 
                     case "SELECT":
                         template =
                             "<CALCULATED>True</CALCULATED>" +
-                            "<DICTIONARIES>False</DICTIONARIES>" +
                             "<CONVERSION>False</CONVERSION>" +
                             "<FORMAT_SPEC>False</FORMAT_SPEC>" +
                             "<ORIGINAL_RECORDS>False</ORIGINAL_RECORDS>" +
@@ -1143,11 +1383,11 @@ a{
                         break;
 
                     case "GETVERSION":
-                        template = "";
+                        template = "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
                         break;
 
                     case "RESETCOMMONBLOCKS":
-                        template = "";
+                        template = "<OUTPUT_FORMAT>" + outputFormat + "</OUTPUT_FORMAT>";
                         break;
                 }                
 				fulltemplate = "<LkCommand><APIKey>" + apikey + "</APIKey><Data>" + template + "</Data><Language></Language><FreeText></FreeText></LkCommand>";				
